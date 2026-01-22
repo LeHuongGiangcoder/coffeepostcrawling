@@ -81,13 +81,8 @@ export function PostCard({ post, onAction }: PostCardProps) {
                             <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-primary uppercase tracking-wide">
                                 <Sparkles className="w-3 h-3" /> Key Insights
                             </div>
-                            <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium">
-                                {/* Handle if it's bulleted or plain text */}
-                                {post.key_insights.split('\n').map((line, i) => (
-                                    <p key={i} className="mb-1 last:mb-0 flex items-start">
-                                        {line.trim().startsWith('-') ? line : `• ${line}`}
-                                    </p>
-                                ))}
+                            <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium line-clamp-3">
+                                {post.key_insights.split('\n').map((line) => (line.trim().startsWith('-') ? line : `• ${line}`)).join('\n')}
                             </div>
                         </div>
                     )}
