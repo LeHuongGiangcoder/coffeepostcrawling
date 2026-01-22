@@ -73,11 +73,30 @@ export default async function PostPage({ params }: PostPageProps) {
                     </div>
 
                     {/* Banner Image Placeholder */}
-                    <div className="w-full h-[400px] bg-secondary/20 rounded-xl overflow-hidden relative border border-border/20 flex items-center justify-center">
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                        {/* Replace with real image if/when available */}
-                        <span className="text-muted-foreground/30 font-serif text-6xl">Coffee</span>
-                    </div>
+                    {/* Banner Image */}
+                    {post.metadata && (post.metadata['og:image'] || post.metadata.ogImage) ? (
+                        <a
+                            href={post.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full h-[400px] bg-secondary/20 rounded-xl overflow-hidden relative border border-border/20 group cursor-pointer"
+                        >
+                            <img
+                                src={post.metadata['og:image'] || post.metadata.ogImage}
+                                alt={post.title}
+                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+                            <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 duration-300">
+                                View Original <ExternalLink className="ml-2 w-3 h-3" />
+                            </div>
+                        </a>
+                    ) : (
+                        <div className="w-full h-[400px] bg-secondary/20 rounded-xl overflow-hidden relative border border-border/20 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                            <span className="text-muted-foreground/30 font-serif text-6xl">Coffee</span>
+                        </div>
+                    )}
 
                     {/* Key Insights Box */}
                     {post.key_insights && (
