@@ -29,6 +29,8 @@ export function PostCard({ post, onAction }: PostCardProps) {
         return 'bg-red-500/10 text-red-500 border-red-500/20';
     };
 
+    const [imageError, setImageError] = useState(false);
+
     const handleAction = async (status: 'approved' | 'rejected', e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
@@ -43,15 +45,34 @@ export function PostCard({ post, onAction }: PostCardProps) {
         <Link href={`/posts/${post.id}`} className="block group h-full">
             <Card className="glass-panel h-full transition-all duration-300 hover:border-gray-600 hover:shadow-lg overflow-hidden flex flex-col md:flex-row min-h-[280px]">
                 {/* Placeholder Image Section (Left) - Responsive width */}
-                <div className="w-full md:w-[240px] lg:w-[280px] bg-secondary/20 relative flex-shrink-0 flex items-center justify-center p-6 border-r border-border/40">
-                    {/* If we had an image, it would go here. For now, use a gradient or icon */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-800 opacity-50" />
-                    <div className="relative z-10 text-center">
-                        <Badge variant="outline" className={clsx("mb-4 text-sm px-3 py-1 backdrop-blur-md", qualityColor(post.content_quality_score))}>
-                            {post.content_quality_score}/10 Quality
-                        </Badge>
-                        <h3 className="text-4xl font-serif font-bold text-muted-foreground/20 select-none">Coffee</h3>
-                    </div>
+                <div className="w-full md:w-[240px] lg:w-[280px] bg-secondary/20 relative flex-shrink-0 flex items-center justify-center border-r border-border/40 overflow-hidden group-hover/image:opacity-90 transition-opacity">
+                    {/* Image Preview */}
+                    {(post.metadata && (post.metadata['og:image'] || post.metadata.ogImage) && !imageError) ? (
+                        <>
+                            <img
+                                src={post.metadata['og:image'] || post.metadata.ogImage}
+                                alt={post.title}
+                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                onError={() => setImageError(true)}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+                            <div className="absolute top-4 left-4 z-10">
+                                <Badge variant="outline" className={clsx("backdrop-blur-md shadow-sm border-white/20 text-white", qualityColor(post.content_quality_score).replace('bg-emerald-500/10', 'bg-emerald-500/80').replace('bg-yellow-500/10', 'bg-yellow-500/80').replace('bg-red-500/10', 'bg-red-500/80').replace('text-emerald-500', 'text-white').replace('text-yellow-500', 'text-white').replace('text-red-500', 'text-white'))}>
+                                    {post.content_quality_score}/10 Quality
+                                </Badge>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-800 opacity-50" />
+                            <div className="relative z-10 text-center p-6">
+                                <Badge variant="outline" className={clsx("mb-4 text-sm px-3 py-1 backdrop-blur-md", qualityColor(post.content_quality_score))}>
+                                    {post.content_quality_score}/10 Quality
+                                </Badge>
+                                <h3 className="text-4xl font-serif font-bold text-muted-foreground/20 select-none">Coffee</h3>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Content Section (Right) */}
