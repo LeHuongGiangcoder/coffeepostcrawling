@@ -28,7 +28,7 @@ export async function DashboardShell({ searchParams }: DashboardShellProps) {
                 </div>
             </header>
 
-            <main className="container py-6 px-8 mx-auto">
+            <main className="container py-4 px-4 mx-auto">
                 <StatsOverview stats={stats} />
 
                 <div className="mt-8">

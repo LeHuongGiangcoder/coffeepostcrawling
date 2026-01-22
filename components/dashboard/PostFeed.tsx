@@ -82,7 +82,7 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {posts.map((post) => (
                     <PostCard
                         key={post.id}
