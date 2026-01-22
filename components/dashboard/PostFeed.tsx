@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { CoffeePost } from '@/lib/types';
 import { PostCard } from './PostCard';
 import { Button } from '@/components/ui/button';
-import { CheckCheck } from 'lucide-react';
-import { updatePostStatus } from '@/actions/posts';
+import { CheckCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { updatePostStatus, bulkUpdatePostStatus } from '@/actions/posts';
+import { Badge } from '@/components/ui/badge';
 
 interface PostFeedProps {
     initialPosts: CoffeePost[];
@@ -13,24 +14,52 @@ interface PostFeedProps {
 
 export function PostFeed({ initialPosts }: PostFeedProps) {
     const [posts, setPosts] = useState<CoffeePost[]>(initialPosts);
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     // Sync prop changes if server revalidates and passes new initialPosts
     useEffect(() => {
         setPosts(initialPosts);
     }, [initialPosts]);
 
+    const toggleSelection = useCallback((id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    }, []);
+
+    const toggleSelectionMode = () => {
+        if (isSelectionMode) {
+            // clear selection when exiting
+            setSelectedIds(new Set());
+        }
+        setIsSelectionMode(!isSelectionMode);
+    };
+
+    const handleBulkAction = async (status: 'approved' | 'rejected') => {
+        const idsToUpdate = Array.from(selectedIds);
+
+        // Optimistic update
+        setPosts(current => current.filter(p => !selectedIds.has(p.id)));
+        setSelectedIds(new Set());
+        setIsSelectionMode(false);
+
+        await bulkUpdatePostStatus(idsToUpdate, status);
+    };
+
     const handleAction = useCallback((id: string, status: 'approved' | 'rejected') => {
         // Optimistic update: remove from list immediately
         setPosts(current => current.filter(p => p.id !== id));
-
-        // Trigger server action in background (PostCard also does this, but for shortcuts we need it here)
-        // Actually PostCard's onAction can handle the list removal, but we need to call the server action if it was a shortcut key
-        // Let's centralize the Server Action call if triggered via shortcut
-        // PostCard calls updatePostStatus internally. 
     }, []);
 
     const handleShortcutAction = useCallback(async (status: 'approved' | 'rejected') => {
-        if (posts.length === 0) return;
+        if (posts.length === 0 || isSelectionMode) return;
         const topPost = posts[0];
 
         // Optimistic remove
@@ -38,7 +67,7 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
 
         // Server execution
         await updatePostStatus(topPost.id, status);
-    }, [posts]);
+    }, [posts, isSelectionMode]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -46,16 +75,19 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
             // Ignroe if input focused
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-            if (e.key.toLowerCase() === 'a') {
+            if (e.key.toLowerCase() === 'a' && !isSelectionMode) {
                 handleShortcutAction('approved');
-            } else if (e.key.toLowerCase() === 'r') {
+            } else if (e.key.toLowerCase() === 'r' && !isSelectionMode) {
                 handleShortcutAction('rejected');
+            } else if (e.key === 'Escape' && isSelectionMode) {
+                setIsSelectionMode(false);
+                setSelectedIds(new Set());
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleShortcutAction]);
+    }, [handleShortcutAction, isSelectionMode]);
 
     if (posts.length === 0) {
         return (
@@ -73,16 +105,39 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
     }
 
     return (
-        <div className="space-y-6 max-w-full mx-auto py-6">
-            <div className="flex justify-between items-center mb-4 px-1">
-                <h2 className="text-xl font-semibold">Queue ({posts.length})</h2>
-                <div className="text-xs text-muted-foreground hidden md:block">
-                    <span className="bg-secondary px-2 py-1 rounded border border-border/50 text-[10px] mr-2">A</span> Approve
-                    <span className="bg-secondary px-2 py-1 rounded border border-border/50 text-[10px] ml-2 mr-2">R</span> Reject
+        <div className="space-y-6 max-w-full mx-auto py-6 pb-24">
+            <div className="flex justify-between items-center mb-4 px-1 sticky top-[108px] z-20 bg-background/80 backdrop-blur py-2 -mx-2 px-2 border-b border-border/40">
+                <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-semibold">Queue ({posts.length})</h2>
+                    {isSelectionMode && selectedIds.size > 0 && (
+                        <Badge variant="secondary" className="animate-in fade-in zoom-in">
+                            {selectedIds.size} Selected
+                        </Badge>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <div className="text-xs text-muted-foreground hidden md:block">
+                        {!isSelectionMode && (
+                            <>
+                                <span className="bg-secondary px-2 py-1 rounded border border-border/50 text-[10px] mr-2">A</span> Approve
+                                <span className="bg-secondary px-2 py-1 rounded border border-border/50 text-[10px] ml-2 mr-2">R</span> Reject
+                            </>
+                        )}
+                    </div>
+
+                    <Button
+                        variant={isSelectionMode ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={toggleSelectionMode}
+                        className={isSelectionMode ? "text-primary" : "text-muted-foreground"}
+                    >
+                        {isSelectionMode ? 'Cancel' : 'Select'}
+                    </Button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                 {posts.map((post) => (
                     <PostCard
                         key={post.id}
@@ -91,9 +146,39 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
                             // Remove from local state to animate out
                             setPosts(curr => curr.filter(p => p.id !== post.id))
                         }}
+                        selectionMode={isSelectionMode}
+                        isSelected={selectedIds.has(post.id)}
+                        onToggleSelection={() => toggleSelection(post.id)}
                     />
                 ))}
             </div>
+
+            {/* Floating Action Bar */}
+            {isSelectionMode && selectedIds.size > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
+                    <div className="bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl rounded-full px-6 py-3 flex items-center gap-4 ring-1 ring-black/5">
+                        <span className="text-sm font-medium mr-2">{selectedIds.size} selected</span>
+
+                        <Button
+                            size="sm"
+                            onClick={() => handleBulkAction('rejected')}
+                            className="rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20"
+                        >
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Reject ({selectedIds.size})
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            onClick={() => handleBulkAction('approved')}
+                            className="rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 border-0"
+                        >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Approve ({selectedIds.size})
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

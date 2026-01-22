@@ -86,6 +86,16 @@ export async function updatePostStatus(id: string, status: 'approved' | 'rejecte
     revalidatePath('/'); // Refresh dashboard
 }
 
+export async function bulkUpdatePostStatus(ids: string[], status: 'approved' | 'rejected') {
+    if (ids.length === 0) return;
+
+    await query(
+        `UPDATE curated_coffee_posts SET approval_status = $1 WHERE id = ANY($2)`,
+        [status, ids]
+    );
+    revalidatePath('/');
+}
+
 export async function getPostById(id: string): Promise<CoffeePost | null> {
     const res = await query<CoffeePost>(`SELECT * FROM curated_coffee_posts WHERE id = $1`, [id]);
     return res.rows[0] || null;

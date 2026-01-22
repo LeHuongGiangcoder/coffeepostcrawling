@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { CoffeePost } from '@/lib/types';
 import { updatePostStatus } from '@/actions/posts';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronRight, ExternalLink, Sparkles } from 'lucide-react';
+import { ChevronRight, ExternalLink, Sparkles, CheckCircle2, Circle } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
@@ -16,9 +16,12 @@ import { useRouter } from 'next/navigation';
 interface PostCardProps {
     post: CoffeePost;
     onAction?: () => void;
+    selectionMode?: boolean;
+    isSelected?: boolean;
+    onToggleSelection?: () => void;
 }
 
-export function PostCard({ post, onAction }: PostCardProps) {
+export function PostCard({ post, onAction, selectionMode = false, isSelected = false, onToggleSelection }: PostCardProps) {
     const [optimisticStatus, setOptimisticStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
     const router = useRouter();
 
@@ -39,11 +42,42 @@ export function PostCard({ post, onAction }: PostCardProps) {
         await updatePostStatus(post.id, status);
     };
 
+    const handleCardClick = (e: React.MouseEvent) => {
+        if (selectionMode && onToggleSelection) {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleSelection();
+        }
+    };
+
     if (optimisticStatus !== 'pending') return null;
 
     return (
-        <Link href={`/posts/${post.id}`} className="block group h-full">
-            <Card className="glass-panel h-full transition-all duration-300 hover:border-gray-600 hover:shadow-lg overflow-hidden flex flex-col md:flex-row min-h-[160px]">
+        <Link
+            href={`/posts/${post.id}`}
+            className="block group h-full relative"
+            onClick={handleCardClick}
+        >
+            {/* Selection Overlay Indicator */}
+            {selectionMode && (
+                <div className={clsx(
+                    "absolute top-3 right-3 z-30 transition-all duration-200",
+                    isSelected ? "text-primary scale-110" : "text-muted-foreground/50 hover:text-muted-foreground hover:scale-105"
+                )}>
+                    {isSelected ? (
+                        <CheckCircle2 className="w-6 h-6 fill-primary text-background" />
+                    ) : (
+                        <Circle className="w-6 h-6 stroke-2" />
+                    )}
+                </div>
+            )}
+
+            <Card className={clsx(
+                "glass-panel h-full transition-all duration-300 overflow-hidden flex flex-col md:flex-row min-h-[160px]",
+                selectionMode && isSelected
+                    ? "border-primary ring-1 ring-primary shadow-md bg-primary/5"
+                    : "hover:border-gray-600 hover:shadow-lg"
+            )}>
                 {/* Placeholder Image Section (Left) - Responsive width */}
                 <div className="w-full md:w-[150px] lg:w-[170px] bg-secondary/20 relative flex-shrink-0 flex items-center justify-center border-r border-border/40 overflow-hidden group-hover/image:opacity-90 transition-opacity">
                     {/* Image preview */}
@@ -116,23 +150,25 @@ export function PostCard({ post, onAction }: PostCardProps) {
                             Read Full <ChevronRight className="w-2.5 h-2.5" />
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => handleAction('rejected', e)}
-                                className="h-7 px-2 text-[10px] text-destructive hover:bg-destructive/10 hover:text-destructive border border-destructive/30"
-                            >
-                                Reject
-                            </Button>
-                            <Button
-                                size="sm"
-                                onClick={(e) => handleAction('approved', e)}
-                                className="h-7 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white border-0 shadow-lg shadow-emerald-900/20"
-                            >
-                                Approve
-                            </Button>
-                        </div>
+                        {!selectionMode && (
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => handleAction('rejected', e)}
+                                    className="h-7 px-2 text-[10px] text-destructive hover:bg-destructive/10 hover:text-destructive border border-destructive/30"
+                                >
+                                    Reject
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    onClick={(e) => handleAction('approved', e)}
+                                    className="h-7 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white border-0 shadow-lg shadow-emerald-900/20"
+                                >
+                                    Approve
+                                </Button>
+                            </div>
+                        )}
                     </CardFooter>
                 </div>
             </Card>
