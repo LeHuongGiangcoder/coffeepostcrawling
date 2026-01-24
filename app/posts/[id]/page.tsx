@@ -88,7 +88,7 @@ export default async function PostPage({ params }: PostPageProps) {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
                             <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 duration-300">
-                                View Original <ExternalLink className="ml-2 w-3 h-3" />
+                                Original source <ExternalLink className="ml-2 w-3 h-3" />
                             </div>
                         </a>
                     ) : (
@@ -132,7 +132,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
                     <div className="pt-8 border-t border-border">
                         <a href={post.url} target="_blank" className="flex items-center justify-center w-full py-4 rounded-lg border border-border bg-secondary/10 hover:bg-secondary/20 transition-all text-sm font-medium">
-                            View Original Source <ExternalLink className="ml-2 w-4 h-4" />
+                            Original source <ExternalLink className="ml-2 w-4 h-4" />
                         </a>
                     </div>
                 </div>

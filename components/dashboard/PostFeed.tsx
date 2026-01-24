@@ -106,7 +106,7 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
 
     return (
         <div className="space-y-6 max-w-full mx-auto py-6 pb-24">
-            <div className="flex justify-between items-center mb-4 px-1 sticky top-[108px] z-20 bg-background/80 backdrop-blur py-2 -mx-2 px-2 border-b border-border/40">
+            <div className="flex justify-between items-center mb-4 px-1 sticky top-14 z-20 bg-background/80 backdrop-blur py-2 -mx-2 px-2 border-b border-border/40">
                 <div className="flex items-center gap-3">
                     <h2 className="text-xl font-semibold">Queue ({posts.length})</h2>
                     {isSelectionMode && selectedIds.size > 0 && (

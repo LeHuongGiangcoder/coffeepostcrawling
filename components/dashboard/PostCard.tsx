@@ -5,6 +5,9 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from 'react-markdown';
 import { CoffeePost } from '@/lib/types';
 import { updatePostStatus } from '@/actions/posts';
 import { formatDistanceToNow } from 'date-fns';
@@ -133,13 +136,49 @@ export function PostCard({ post, onAction, selectionMode = false, isSelected = f
 
                     {/* Key Insights - Always Visible & Styled */}
                     {post.key_insights && (
-                        <div className="bg-secondary/10 rounded-md p-2 border border-border/30 mt-1 mb-2">
-                            <div className="flex items-center gap-1 mb-1 text-[10px] font-semibold text-primary uppercase tracking-wide opacity-80">
-                                <Sparkles className="w-2.5 h-2.5" /> Key Insights
-                            </div>
-                            <div className="text-[10px] text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium line-clamp-2">
-                                {post.key_insights.split('\n').map((line) => (line.trim().startsWith('-') ? line : `• ${line}`)).join('\n')}
-                            </div>
+                        <div onClick={(e) => e.stopPropagation()} className="relative z-20">
+                            <HoverCard openDelay={200} closeDelay={100}>
+                                <HoverCardTrigger asChild>
+                                    <div className="bg-secondary/10 rounded-md p-2 border border-border/30 mt-1 mb-2 cursor-help transition-colors hover:bg-secondary/20 hover:border-primary/20">
+                                        <div className="flex items-center gap-1 mb-1 text-[10px] font-semibold text-primary uppercase tracking-wide opacity-80">
+                                            <Sparkles className="w-2.5 h-2.5" /> Key Insights
+                                        </div>
+                                        <div className="text-[10px] text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium line-clamp-2">
+                                            {post.key_insights.split('\n').map((line) => (line.trim().startsWith('-') ? line : `• ${line}`)).join('\n')}
+                                        </div>
+                                    </div>
+                                </HoverCardTrigger>
+                                <HoverCardContent
+                                    side="right" // Prefer right, but allow flip
+                                    align="start"
+                                    collisionPadding={20}
+                                    sideOffset={10}
+                                    className="w-[600px] max-w-[90vw] p-0 overflow-hidden bg-popover/95 backdrop-blur-xl border border-border/50 shadow-2xl z-50 ring-1 ring-white/10"
+                                >
+                                    <div className="p-4 border-b border-border bg-muted/50">
+                                        <h4 className="font-serif font-bold text-lg text-foreground mb-1 line-clamp-2">{post.title}</h4>
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <span className="font-medium text-primary uppercase text-[10px] tracking-wider">Quick Preview</span>
+                                            <span>•</span>
+                                            <span>{post.author || 'Unknown Author'}</span>
+                                        </div>
+                                    </div>
+                                    <ScrollArea className="h-[400px]">
+                                        <div className="p-5 text-sm text-foreground/90 leading-relaxed prose prose-invert prose-sm max-w-none prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground">
+                                            {post.content_markdown ? (
+                                                <ReactMarkdown>{post.content_markdown}</ReactMarkdown>
+                                            ) : (
+                                                <p className="italic text-muted-foreground">No detailed content available for preview.</p>
+                                            )}
+                                        </div>
+                                    </ScrollArea>
+                                    <div className="p-2 bg-muted/50 border-t border-border flex justify-end">
+                                        <Link href={`/posts/${post.id}`} className="flex items-center gap-1 text-[10px] text-primary font-medium hover:underline underline-offset-4 group/link">
+                                            Read Full <ChevronRight className="w-2.5 h-2.5 transition-transform group-hover/link:translate-x-0.5" />
+                                        </Link>
+                                    </div>
+                                </HoverCardContent>
+                            </HoverCard>
                         </div>
                     )}
 
