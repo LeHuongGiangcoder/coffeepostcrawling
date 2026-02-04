@@ -3,18 +3,12 @@
 import { CoffeePost } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, ExternalLink, MoreHorizontal, Circle } from 'lucide-react';
+import { CheckCircle2, XCircle, ExternalLink, Circle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { updatePostStatus } from '@/actions/posts';
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface PostTableProps {
     posts: CoffeePost[];
@@ -58,13 +52,13 @@ export function PostTable({
                             Date
                         </th>
                         <th className="px-4 py-3 font-medium w-[40%] cursor-pointer hover:text-foreground transition-colors">
-                            Document (Title)
+                            Title
                         </th>
                         <th className="px-4 py-3 font-medium cursor-pointer hover:text-foreground transition-colors">
-                            Associated Project (Source)
+                            Source
                         </th>
                         <th className="px-4 py-3 font-medium text-center cursor-pointer hover:text-foreground transition-colors">
-                            Value (Score)
+                            Score
                         </th>
                         <th className="px-4 py-3 font-medium text-right">
                             Status / Actions
@@ -161,39 +155,41 @@ export function PostTable({
                                 </td>
 
                                 <td className="px-4 py-3 text-right">
-                                    <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                                        <Badge variant="secondary" className="bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-orange-500/20">
+                                    <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                        <Badge variant="secondary" className="mr-2 bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-orange-500/20">
                                             PENDING
                                         </Badge>
 
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                                    <MoreHorizontal className="w-4 h-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    className="text-emerald-500 focus:text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950/30"
-                                                    onClick={() => handleAction(post.id, 'approved')}
-                                                >
-                                                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                                                    Approve
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                                                    onClick={() => handleAction(post.id, 'rejected')}
-                                                >
-                                                    <XCircle className="w-4 h-4 mr-2" />
-                                                    Reject
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href={`/posts/${post.id}`}>
-                                                        View Details
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10"
+                                            onClick={() => handleAction(post.id, 'approved')}
+                                            title="Approve"
+                                        >
+                                            <CheckCircle2 className="w-4 h-4" />
+                                        </Button>
+
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => handleAction(post.id, 'rejected')}
+                                            title="Reject"
+                                        >
+                                            <XCircle className="w-4 h-4" />
+                                        </Button>
+
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                            asChild
+                                        >
+                                            <Link href={`/posts/${post.id}`} title="View Details">
+                                                <ExternalLink className="w-4 h-4" />
+                                            </Link>
+                                        </Button>
                                     </div>
                                 </td>
                             </tr>
