@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CoffeePost } from '@/lib/types';
 import { PostCard } from './PostCard';
+import { PostTable } from './PostTable';
+import { ViewToggle } from './ViewToggle';
 import { Button } from '@/components/ui/button';
 import { CheckCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { updatePostStatus, bulkUpdatePostStatus } from '@/actions/posts';
@@ -16,6 +18,7 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
     const [posts, setPosts] = useState<CoffeePost[]>(initialPosts);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
     // Sync prop changes if server revalidates and passes new initialPosts
     useEffect(() => {
@@ -117,6 +120,8 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+
                     <div className="text-xs text-muted-foreground hidden md:block">
                         {!isSelectionMode && (
                             <>
@@ -137,21 +142,31 @@ export function PostFeed({ initialPosts }: PostFeedProps) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-                {posts.map((post) => (
-                    <PostCard
-                        key={post.id}
-                        post={post}
-                        onAction={() => {
-                            // Remove from local state to animate out
-                            setPosts(curr => curr.filter(p => p.id !== post.id))
-                        }}
-                        selectionMode={isSelectionMode}
-                        isSelected={selectedIds.has(post.id)}
-                        onToggleSelection={() => toggleSelection(post.id)}
-                    />
-                ))}
-            </div>
+            {viewMode === 'table' ? (
+                <PostTable
+                    posts={posts}
+                    selectionMode={isSelectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelection={toggleSelection}
+                    onAction={handleAction}
+                />
+            ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                    {posts.map((post) => (
+                        <PostCard
+                            key={post.id}
+                            post={post}
+                            onAction={() => {
+                                // Remove from local state to animate out
+                                setPosts(curr => curr.filter(p => p.id !== post.id))
+                            }}
+                            selectionMode={isSelectionMode}
+                            isSelected={selectedIds.has(post.id)}
+                            onToggleSelection={() => toggleSelection(post.id)}
+                        />
+                    ))}
+                </div>
+            )}
 
             {/* Floating Action Bar */}
             {isSelectionMode && selectedIds.size > 0 && (
